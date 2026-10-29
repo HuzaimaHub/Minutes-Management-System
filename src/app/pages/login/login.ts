@@ -1,20 +1,20 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { BrandService } from '../../core/brand.service';
 import { Icon, IconName } from '../../shared/icon';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, NgTemplateOutlet, Icon],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, Icon],
   template: `
     <ng-template #logo>
       @if (!logoMissing()) {
-        <img class="logo" [src]="brand.logoSrc()" alt="ZSSF logo" (error)="logoMissing.set(true)" />
+        <img class="logo" [src]="brand.logoSrc()" alt="Logo" (error)="logoMissing.set(true)" />
       } @else {
-        <span class="logo-text">ZSSF</span>
+        <span class="logo-text">{{ brand.orgShort() }}</span>
       }
     </ng-template>
 
@@ -30,11 +30,13 @@ import { Icon, IconName } from '../../shared/icon';
             <div class="org-logo"><ng-container [ngTemplateOutlet]="logo" /></div>
             <div>
               <div class="org-name">{{ brand.orgName() }}</div>
-              <div class="org-sub">@if (brand.orgNameSw()) { <div class="org-sub">{{ brand.orgNameSw() }}</div> }</div>
+              @if (brand.orgNameSw()) {
+                <div class="org-sub">{{ brand.orgNameSw() }}</div>
+              }
             </div>
           </div>
 
-          <h2>Welcome to ZSSF Meeting Minutes</h2>
+          <h2>Welcome to {{ brand.systemName() }}</h2>
           <p class="lead">
             Sign in to manage meetings, agendas, attendees and minutes from one workspace.
           </p>
@@ -86,16 +88,19 @@ import { Icon, IconName } from '../../shared/icon';
               </button>
             </div>
 
+            <div class="forgot-row">
+              <a routerLink="/forgot-password">Forgot password?</a>
+            </div>
+
             <button type="submit" class="submit" [disabled]="loading()">
               {{ loading() ? 'Signing in...' : 'Sign in' }}
             </button>
-            <p class="contact">Forgot your password? Contact the ICT officer in charge of this system.</p>
           </form>
         </section>
       </main>
 
       <footer class="foot">
-        © {{ year }} Zanzibar Social Security Fund (ZSSF) · Meeting Minutes Management System
+        © {{ year }} {{ brand.orgLabel() }} · {{ brand.systemName() }}
       </footer>
 
       <div class="help-wrap">
@@ -105,7 +110,8 @@ import { Icon, IconName } from '../../shared/icon';
             <ul>
               <li>Check your email and password. Use SHOW to see what you typed.</li>
               <li>If you see 'Cannot reach the server', the system is not running yet. Wait a moment and try again.</li>
-              <li>Forgot your password? The ICT officer in charge of this system can reset it for you.</li>
+              <li>Forgot your password? Click <b>Forgot password?</b> to get a reset link by email.</li>
+              <li>Still stuck? The ICT officer in charge of this system can help you.</li>
             </ul>
             @if (helpContact.phone) { <p class="help-contact">📞 {{ helpContact.phone }}</p> }
             @if (helpContact.email) { <p class="help-contact">✉️ {{ helpContact.email }}</p> }
@@ -189,11 +195,13 @@ import { Icon, IconName } from '../../shared/icon';
     .pass input { padding-right: 72px; }
     .toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: transparent;
       color: var(--teal-dark); font-size: 12px; font-weight: 800; letter-spacing: .04em; cursor: pointer; padding: 6px 8px; }
-    .submit { margin-top: 18px; padding: 13px; border: 0; border-radius: 999px; background: var(--teal); color: #fff;
+    .forgot-row { text-align: right; margin-top: 2px; }
+    .forgot-row a { color: var(--teal-dark); font-size: 13px; font-weight: 700; text-decoration: none; }
+    .forgot-row a:hover { text-decoration: underline; }
+    .submit { margin-top: 14px; padding: 13px; border: 0; border-radius: 999px; background: var(--teal); color: #fff;
       font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s; }
     .submit:hover { background: var(--teal-dark); }
     .submit:disabled { opacity: .6; cursor: not-allowed; }
-    .contact { margin: 12px 0 0; text-align: center; font-size: 12px; color: #6b7280; }
     .error { background: #fde8e8; color: #b42318; padding: 10px; border-radius: 10px; font-size: 13px; }
 
     .foot { position: relative; z-index: 1; margin-top: 22px; font-size: 12px; color: #5b6b61; text-align: center; }
@@ -220,7 +228,7 @@ import { Icon, IconName } from '../../shared/icon';
 export class Login implements OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
-  brand = inject(BrandService); // Imeongezwa hapa ili kuondoa error ya TS2339
+  brand = inject(BrandService);
 
   email = '';
   password = '';

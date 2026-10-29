@@ -24,18 +24,15 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http
       .post<LoginResponse>(`${API_URL}/auth/login`, { email, password })
-      .pipe(
-        tap((res) => {
-          const u: CurrentUser = {
-            fullName: res.fullName,
-            email: res.email,
-            role: res.role,
-          };
-          localStorage.setItem(TOKEN_KEY, res.token);
-          localStorage.setItem(USER_KEY, JSON.stringify(u));
-          this.user.set(u);
-        })
-      );
+      .pipe(tap((res) => this.applySession(res)));
+  }
+
+  // Stores a new token and user (after login, or after the profile changes)
+  applySession(res: LoginResponse) {
+    const u: CurrentUser = { fullName: res.fullName, email: res.email, role: res.role };
+    localStorage.setItem(TOKEN_KEY, res.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    this.user.set(u);
   }
 
   logout() {
@@ -51,6 +48,23 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!this.token;
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post<{ message: string }>(`${API_URL}/auth/forgot-password`, { email });
+  }
+
+  checkResetToken(token: string) {
+    return this.http.get<{ message: string }>(`${API_URL}/auth/reset-password/check`, {
+      params: { token },
+    });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post<{ message: string }>(`${API_URL}/auth/reset-password`, {
+      token,
+      newPassword,
+    });
   }
 
   private loadUser(): CurrentUser | null {

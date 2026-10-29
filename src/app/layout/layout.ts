@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/auth.service';
-import { BrandService } from '../core/brand.service'; // Imeongezwa hapa
+import { BrandService } from '../core/brand.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -12,13 +12,13 @@ import { BrandService } from '../core/brand.service'; // Imeongezwa hapa
         <div class="brand">
           <div class="logo-box">
             @if (!logoMissing()) {
-              <img [src]="brand.logoSrc()" alt="ZSSF logo" (error)="logoMissing.set(true)" />
+              <img [src]="brand.logoSrc()" alt="Logo" (error)="logoMissing.set(true)" />
             } @else {
-            <span class="logo-fallback">{{ brand.orgShort() }}</span>
+              <span class="logo-fallback">{{ brand.orgShort() }}</span>
             }
           </div>
-         <div class="brand-name">{{ brand.orgShort() }}</div>
-          <div class="brand-sub">Meeting Minutes System</div>
+          <div class="brand-name">{{ brand.orgShort() }}</div>
+          <div class="brand-sub">{{ brand.systemName() }}</div>
         </div>
 
         <nav>
@@ -28,22 +28,25 @@ import { BrandService } from '../core/brand.service'; // Imeongezwa hapa
           <a routerLink="/attendees" routerLinkActive="active">Attendees</a>
           <a routerLink="/minutes" routerLinkActive="active">Minutes</a>
           <a routerLink="/report" routerLinkActive="active">Minutes Report</a>
+          <a routerLink="/profile" routerLinkActive="active">My profile</a>
           <a routerLink="/settings" routerLinkActive="active">Settings</a>
         </nav>
 
-        <a class="public-link" href="/" target="_blank" rel="noopener">View public page ↗</a>
+        <a class="public-link" href="/public" target="_blank" rel="noopener">View public page ↗</a>
       </aside>
 
       <div class="main">
         <header class="topbar">
-          <span class="who">{{ auth.user()?.fullName }} ({{ auth.user()?.role }})</span>
+          <a class="who" routerLink="/profile" title="My profile">
+            {{ auth.user()?.fullName }} ({{ auth.user()?.role }})
+          </a>
           <button class="logout" (click)="auth.logout()">Logout</button>
         </header>
         <section class="content">
           <router-outlet />
         </section>
         <footer class="app-footer no-print">
-          © {{ year }} {{ brand.orgLabel() }} · {{ brand.systemName() }} 
+          © {{ year }} {{ brand.orgLabel() }} · {{ brand.systemName() }}
         </footer>
       </div>
     </div>
@@ -65,7 +68,8 @@ import { BrandService } from '../core/brand.service'; // Imeongezwa hapa
     .public-link:hover { color: #fff; }
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .topbar { display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding: 12px 24px; background: #fff; border-bottom: 1px solid var(--border); }
-    .who { color: var(--muted); font-size: 14px; }
+    .who { color: var(--muted); font-size: 14px; text-decoration: none; }
+    .who:hover { color: var(--navy); text-decoration: underline; }
     .logout { padding: 8px 14px; border: 1px solid #f0b9b4; border-radius: 8px; background: #fff; color: var(--danger); cursor: pointer; }
     .logout:hover { background: #fdecea; }
     .content { flex: 1; padding: 24px; }
@@ -74,7 +78,7 @@ import { BrandService } from '../core/brand.service'; // Imeongezwa hapa
 })
 export class MainLayout {
   auth = inject(AuthService);
-  brand = inject(BrandService); // Imeongezwa hapa ili kuondoa error ya TS2339
+  brand = inject(BrandService);
   year = new Date().getFullYear();
   logoMissing = signal(false);
 }

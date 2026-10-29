@@ -16,17 +16,18 @@ const EMPTY: AttendeeForm = { fullName: '', institution: '', position: '', comme
 
 @Component({
   selector: 'app-attendees',
-    imports: [FormsModule, MeetingPicker, RouterLink],
+  imports: [FormsModule, MeetingPicker, RouterLink],
   template: `
     <div class="page-head">
       <div>
         <h1>Attendees</h1>
         <p class="page-sub">People who attended each meeting.</p>
       </div>
-            @if (meetingId() !== null) {
+      @if (meetingId() !== null) {
         <div style="display: flex; gap: 8px">
           <a class="btn" style="text-decoration: none"
-           routerLink="/report" [queryParams]="{ meeting: meetingId(), mode: 'attendees', print: 1 }">Print</a>
+             routerLink="/report"
+             [queryParams]="{ meeting: meetingId(), mode: 'attendees', print: 1 }">Print</a>
           <button class="btn btn-primary" (click)="openNew()">+ Add attendee</button>
         </div>
       }
@@ -64,6 +65,11 @@ const EMPTY: AttendeeForm = { fullName: '', institution: '', position: '', comme
     }
 
     @if (meetingId() !== null) {
+      @if (!loading()) {
+        <p style="margin: 0 0 10px; color: var(--muted)">
+          Total attendees: <strong>{{ items().length }}</strong>
+        </p>
+      }
       <div class="table-wrap">
         @if (loading()) {
           <div class="empty">Loading...</div>
@@ -71,6 +77,7 @@ const EMPTY: AttendeeForm = { fullName: '', institution: '', position: '', comme
           <table>
             <thead>
               <tr>
+                <th style="width: 60px">No.</th>
                 <th>Full name</th>
                 <th>Institution</th>
                 <th>Position</th>
@@ -79,8 +86,9 @@ const EMPTY: AttendeeForm = { fullName: '', institution: '', position: '', comme
               </tr>
             </thead>
             <tbody>
-              @for (a of items(); track a.attendeeId) {
+              @for (a of items(); track a.attendeeId; let i = $index) {
                 <tr>
+                  <td><span class="badge">{{ i + 1 }}</span></td>
                   <td>{{ a.fullName }}</td>
                   <td>{{ a.institution }}</td>
                   <td>{{ a.position }}</td>
@@ -93,7 +101,7 @@ const EMPTY: AttendeeForm = { fullName: '', institution: '', position: '', comme
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="5" class="empty">No attendees for this meeting yet.</td></tr>
+                <tr><td colspan="6" class="empty">No attendees for this meeting yet.</td></tr>
               }
             </tbody>
           </table>
